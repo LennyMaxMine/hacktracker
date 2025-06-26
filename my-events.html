@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Events - Hacktracker</title>
+  <style>
+    .event-card {
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 15px 0;
+      max-width: 500px;
+    }
+    img {
+      width: 100%;
+      max-width: 500px;
+    }
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+    .approved {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .pending {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    .rejected {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    #authCheck {
+      margin: 15px 0;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>My Events</h1>
+  
+  <div id="authCheck" style="display: none;">
+    <p>Checking authentication...</p>
+  </div>
+  
+  <div id="myEventsPanel" style="display: none;">
+    <p>Here are all the events you've submitted:</p>
+    <div id="eventContainer">Loading your events...</div>
+  </div>
+
+  <a href="index.html">Back to the main page</a>
+
+  <script type="module" src="./src/my-events.js"></script>
+</body>
+</html> 

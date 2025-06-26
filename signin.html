@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign In - Hacktracker</title>
+</head>
+<body>
+  <h1>Hacktracker</h1>
+  
+  <div id="authContainer">
+    <h2>Login or Register</h2>
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="register()">Register</button>
+    <button onclick="login()">Login</button>
+    <button onclick="logout()">Logout</button>
+    <p id="userStatus"></p>
+  </div>
+
+  <a href="index.html">Back to the main page</a>
+
+  <script type="module" src="./src/auth.js"></script>
+</body>
+</html> 

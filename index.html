@@ -6,92 +6,208 @@
   <title>Find Hackathons easily - Hacktracker</title>
   <style>
     .event-card {
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      padding: 15px;
-      margin: 15px 0;
-      max-width: 500px;
+      border: none;
+      border-radius: 16px;
+      padding: 0;
+      background: white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      overflow: hidden;
     }
-    img {
+    .event-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+    .event-image {
       width: 100%;
-      max-width: 500px;
+      height: 200px;
+      object-fit: contain;
+      border-radius: 0;
+      background-color: #f8f9fa;
+    }
+    .event-content {
+      padding: 20px;
+    }
+    .event-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 0 0 12px 0;
+      color: #2c3e50;
+    }
+    .event-organization {
+      font-size: 16px;
+      color: #007bff;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .event-date {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+    }
+    .event-location {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+    }
+    .event-description {
+      font-size: 14px;
+      color: #444;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    .event-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid #eee;
+      font-size: 12px;
+      color: #888;
+    }
+    .event-participants {
+      background: #f8f9fa;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
+    .hide-btn {
+      background: #6c757d;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      margin-left: 10px;
+      transition: background-color 0.2s ease;
+    }
+    .hide-btn:hover {
+      background: #5a6268;
+    }
+    body {
+      background-color: #f5f7fa;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+    #eventContainer {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      padding: 0 20px;
+    }
+    #authStatus {
+      margin: 15px 0;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-radius: 5px;
+    }
+    #logoutBtn {
+      padding: 8px 16px;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    #logoutBtn:hover {
+      background-color: #c82333;
+    }
+    #adminLink, #addEventLink, #searchBtn, #clearBtn, #myEventsLink {
+      padding: 8px 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    #searchBtn:hover, #clearBtn:hover, #adminLink:hover, #addEventLink:hover, #myEventsLink:hover {
+      background-color: #0056b3;
+    }
+    #searchInput {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-right: 10px;
+    }
+    .page-header {
+      text-align: center;
+      margin: 30px 0;
+      color: #2c3e50;
+    }
+    .search-container {
+      text-align: center;
+      margin: 20px 0 40px 0;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .events-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    .events-title {
+      font-size: 28px;
+      color: #2c3e50;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    @media (max-width: 768px) {
+      #eventContainer {
+        grid-template-columns: 1fr;
+        padding: 0 10px;
+      }
+      .event-content {
+        padding: 16px;
+      }
+      .event-title {
+        font-size: 20px;
+      }
+      .events-section {
+        padding: 0 10px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Hacktracker</h1>
-  <p>Find hackathons easily</p>
-  <input type="text" id="searchInput" placeholder="Search for a hackathon" oninput="searchEvents(this.value);">
-  <button id="searchBtn">Search</button>
-  <button id="clearBtn">Clear</button>
+  <div class="page-header">
+    <h1>Hacktracker</h1>
+    <p>Find hackathons easily</p>
+  </div>
+  
+  <div id="authStatus">
+    <p id="userStatus">Checking login status...</p>
+    <a href="signin.html" id="signInLink">Sign In</a>
+    <button onclick="logout()" id="logoutBtn" style="display: none;">Logout</button>
+  </div>
+  
+  <button onclick="window.location.href='add'" id="addEventLink" style="display: none;">Add a new event</button>
+  <button onclick="window.location.href='my-events'" id="myEventsLink" style="display: none;">My Events</button>
+  <button onclick="window.location.href='admin'" id="adminLink" style="display: none;">Admin Panel</button>
 
-  <h1>All Events</h1>
-  <div id="eventContainer">Loading events...</div>
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="Search for hackathons" oninput="searchEvents(this.value);">
+    <button id="searchBtn">Search</button>
+    <button id="clearBtn">Clear</button>
+  </div>
 
-  <script>
-    let allEvents = [];
+  <div class="events-section">
+    <h2 class="events-title">All Events</h2>
+    <div id="eventContainer">Loading events...</div>
+  </div>
 
-    function showEvents(eventsToShow) {
-      const container = document.getElementById('eventContainer');
-      container.innerHTML = '';
-
-      if (eventsToShow.length === 0) {
-        container.innerHTML = '<p>No events found matching your search.</p>';
-        return;
-      }
-
-
-      eventsToShow.forEach(event => {
-        if (event.participants === 0) {
-            event.participants = "N/A";
-        }
-        
-        const eventHTML = `
-          <div class="event-card">
-            <img src="${event.image}" alt="${event.name}">
-            <h2>${event.name}</h2>
-            <p><strong>Organization:</strong> ${event.organization}</p>
-            <p><strong>Date:</strong> ${event.date} to ${event.endDate}</p>
-            <p><strong>Location:</strong> ${event.location}</p>
-            <p><strong>Description:</strong> ${event.description}</p>
-            <p><strong>Participants:</strong> ${event.participants}</p>
-          </div>
-        `;
-        container.innerHTML += eventHTML;
-      });
-    }
-
-    function searchEvents(searchValue) {
-
-        const filtered = allEvents.filter(event =>
-            event.name.toLowerCase().includes(searchValue) ||
-            event.organization.toLowerCase().includes(searchValue) ||
-            event.location.toLowerCase().includes(searchValue)
-        );
-
-        showEvents(filtered);
-    }
-
-    fetch('./temporary_data_list_for_the_events_lol.json')
-      .then(response => response.json())
-      .then(data => {
-        allEvents = data;
-        showEvents(allEvents);
-      })
-      .catch(error => {
-        document.getElementById('eventContainer').innerText = "Error loading data.";
-        console.error('Error loading:', error);
-      });
-
-    document.getElementById('searchBtn').addEventListener('click', () => {
-        const searchValue = document.getElementById('searchInput').value.toLowerCase();
-        searchEvents(searchValue);
-    });
-
-    document.getElementById('clearBtn').addEventListener('click', () => {
-        document.getElementById('searchInput').value = '';
-        searchEvents('');
-    });
-  </script>
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>

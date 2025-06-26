@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Add Event - Hacktracker</title>
+  <style>
+    form {
+      display: flex;
+      flex-direction: column;
+      max-width: 400px;
+      gap: 10px;
+    }
+    input, textarea, button {
+      padding: 8px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Add a New Event</h1>
+  <div id="authCheck" style="display: none;">
+    <p>Checking authentication...</p>
+  </div>
+  <form id="eventForm">
+    <input type="text" id="name" placeholder="Name" required />
+    <input type="url" id="link_to_event" placeholder="Link to event" required />
+    <input type="text" id="organization" placeholder="Organization" required />
+    <input type="url" id="link_to_organization" placeholder="Link to organization" required />
+    <input type="date" id="startDate" required />
+    <input type="date" id="endDate" required />
+    <input type="text" id="location" placeholder="Location" required />
+    <input type="url" id="image" placeholder="Image URL" required />
+    <input type="number" id="participants" placeholder="Participants (optional)" />
+    <textarea id="description" placeholder="Description" required></textarea>
+    <button type="submit">Submit</button>
+  </form>
+ 
+  <p>Every text you submit will be reviewed by an admin & later be visible to everyone.</p>
+  <a href="index">Back to the main page</a>
+
+  <script type="module" src="./src/add.js"></script>
+</body>
+</html>
