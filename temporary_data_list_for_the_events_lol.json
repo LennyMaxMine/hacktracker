@@ -1,0 +1,13 @@
+[
+  {
+    "id": 1,
+    "name": "Neighborhood",
+    "organization": "Hack Club",
+    "date": "2025-06-01",
+    "endDate": "2025-08-31",
+    "location": "San Francisco, CA",
+    "description": "Spend 100 hours coding your own web/mobile app & you're guaranteed a spot in one of our houses and a flight to SF this summer!",
+    "participants": 0,
+    "image": "https://neighborhood.hackclub.com/neighborhoodLogo.png"
+  }
+]

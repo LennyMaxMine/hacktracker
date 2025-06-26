@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Find Hackathons easily - Hacktracker</title>
+  <style>
+    .event-card {
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 15px 0;
+      max-width: 500px;
+    }
+    img {
+      width: 100%;
+      max-width: 500px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Hacktracker</h1>
+  <p>Find hackathons easily</p>
+  <input type="text" id="searchInput" placeholder="Search for a hackathon" oninput="searchEvents(this.value);">
+  <button id="searchBtn">Search</button>
+  <button id="clearBtn">Clear</button>
+
+  <h1>All Events</h1>
+  <div id="eventContainer">Loading events...</div>
+
+  <script>
+    let allEvents = [];
+
+    function showEvents(eventsToShow) {
+      const container = document.getElementById('eventContainer');
+      container.innerHTML = '';
+
+      if (eventsToShow.length === 0) {
+        container.innerHTML = '<p>No events found matching your search.</p>';
+        return;
+      }
+
+
+      eventsToShow.forEach(event => {
+        if (event.participants === 0) {
+            event.participants = "N/A";
+        }
+        
+        const eventHTML = `
+          <div class="event-card">
+            <img src="${event.image}" alt="${event.name}">
+            <h2>${event.name}</h2>
+            <p><strong>Organization:</strong> ${event.organization}</p>
+            <p><strong>Date:</strong> ${event.date} to ${event.endDate}</p>
+            <p><strong>Location:</strong> ${event.location}</p>
+            <p><strong>Description:</strong> ${event.description}</p>
+            <p><strong>Participants:</strong> ${event.participants}</p>
+          </div>
+        `;
+        container.innerHTML += eventHTML;
+      });
+    }
+
+    function searchEvents(searchValue) {
+
+        const filtered = allEvents.filter(event =>
+            event.name.toLowerCase().includes(searchValue) ||
+            event.organization.toLowerCase().includes(searchValue) ||
+            event.location.toLowerCase().includes(searchValue)
+        );
+
+        showEvents(filtered);
+    }
+
+    fetch('./temporary_data_list_for_the_events_lol.json')
+      .then(response => response.json())
+      .then(data => {
+        allEvents = data;
+        showEvents(allEvents);
+      })
+      .catch(error => {
+        document.getElementById('eventContainer').innerText = "Error loading data.";
+        console.error('Error loading:', error);
+      });
+
+    document.getElementById('searchBtn').addEventListener('click', () => {
+        const searchValue = document.getElementById('searchInput').value.toLowerCase();
+        searchEvents(searchValue);
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+        document.getElementById('searchInput').value = '';
+        searchEvents('');
+    });
+  </script>
+</body>
+</html>
