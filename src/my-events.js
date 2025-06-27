@@ -90,6 +90,10 @@ function displayEvents(events) {
   })
   
   events.forEach(event => {
+    if (event.participants === 0) {
+      event.participants = "N/A"
+    }
+
     const card = document.createElement("div")
     card.className = "event-card"
     
@@ -103,14 +107,33 @@ function displayEvents(events) {
     }
     
     card.innerHTML = `
-      <h2>${event.name}${statusBadge}</h2>
-      <p><strong>Organization:</strong> ${event.organization}</p>
-      <p><strong>Date:</strong> ${formatDate(event.startDate)} to ${formatDate(event.endDate)}</p>
-      <p><strong>Location:</strong> ${event.location}</p>
-      <p><strong>Description:</strong> ${event.description}</p>
-      <p><strong>Participants:</strong> ${event.participants || 'N/A'}</p>
-      <img src="${event.image}" alt="${event.name}" style="max-width: 100%;">
+      <img src="${event.image}" alt="${event.name}" class="event-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDQwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjhGOUZBIi8+CjxwYXRoIGQ9Ik0xNzUgNzVIMjI1VjEyNUgxNzVWNzVaIiBmaWxsPSIjREVFMkU2Ii8+CjxwYXRoIGQ9Ik0xODcuNSA5Ny41QzE4Ny41IDEwMS42NDIgMTg0LjE0MiAxMDUgMTgwIDEwNUMxNzUuODU4IDEwNSAxNzIuNSAxMDEuNjQyIDE7Mi41IDk3LjVDMTcyLjUgOTMuMzU4IDE3NS44NTggOTAgMTgwIDkwQzE4NC4xNDIgOTAgMTg3LjUgOTMuMzU4IDE4Ny41IDk3LjVaIiBmaWxsPSIjREVFMkU2Ii8+CjxwYXRoIGQ9Ik0yMjUgMTEyLjVMMjE1IDEwMkwyMDUgMTEyLjVIMjI1WiIgZmlsbD0iI0RFRTJFNiIvPgo8dGV4dCB4PSIyMDAiIHk9IjE1NSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTFBN0IxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5JbWFnZSBub3QgYXZhaWxhYmxlPC90ZXh0Pgo8L3N2Zz4K';">
+      <div class="event-content">
+        <h2 class="event-title">${event.name}${statusBadge}</h2>
+        <div class="event-organization">${event.organization}</div>
+        <div class="event-date">📅 ${formatDate(event.startDate)} to ${formatDate(event.endDate)}</div>
+        <div class="event-location">📍 ${event.location}</div>
+        <div class="event-description">${event.description}</div>
+        <div class="event-meta">
+          <span class="event-participants">👥 ${event.participants} participants</span>
+          <span>Status: ${event.status.toUpperCase()}</span>
+        </div>
+      </div>
     `
+    
+    card.onclick = () => {
+      window.location.href = `edit-event.html?id=${event.id}&status=${event.status}`
+    }
+    card.style.cursor = 'pointer'
+    
+    if (event.status === 'approved') {
+      card.title = 'Click to edit this approved event (changes will need approval)'
+    } else if (event.status === 'pending') {
+      card.title = 'Click to edit this pending event'
+    } else if (event.status === 'rejected') {
+      card.title = 'Click to edit and resubmit this rejected event'
+    }
+    
     container.appendChild(card)
   })
 }

@@ -9,7 +9,8 @@ export default defineConfig({
         add: resolve(__dirname, 'add.html'),
         admin: resolve(__dirname, 'admin.html'),
         signin: resolve(__dirname, 'signin.html'),
-        'my-events': resolve(__dirname, 'my-events.html')
+        'my-events': resolve(__dirname, 'my-events.html'),
+        'edit-event': resolve(__dirname, 'edit-event.html')
       }
     }
   }

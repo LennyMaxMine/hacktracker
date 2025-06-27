@@ -1,5 +1,5 @@
 import { db, auth } from './firebase.js'
-import { collection, getDocs, doc, getDoc, addDoc, deleteDoc } from 'firebase/firestore'
+import { collection, getDocs, doc, getDoc, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'
 import { onAuthStateChanged } from 'firebase/auth'
 
 const container = document.getElementById("eventContainer")
@@ -62,8 +62,11 @@ async function loadApproveEvents() {
     const card = document.createElement("div")
     card.className = "event-card"
 
+    const updateBadge = event.isUpdate ? '<span style="background: #ffc107; color: #212529; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-left: 10px;">📝 UPDATE</span>' : ''
+
     card.innerHTML = `
-      <h2>${event.name}</h2>
+      <h2>${event.name}${updateBadge}</h2>
+      ${event.isUpdate ? `<p style="color: #007bff; font-weight: bold;">🔄 This is an update to an existing approved event</p>` : ''}
       <p><strong>Organization:</strong> ${event.organization}</p>
       <p><strong>Date:</strong> ${formatDate(event.startDate)} to ${formatDate(event.endDate)}</p>
       <p><strong>Location:</strong> ${event.location}</p>
@@ -72,8 +75,8 @@ async function loadApproveEvents() {
       <img src="${event.image}" alt="${event.name}" style="max-width: 100%;">
       <p><strong>Submitted by:</strong> ${event.user}</p>
       <br/><br/>
-      <button onclick="approveEvent('${event.id}')">✅ Approve</button>
-      <button onclick="rejectEvent('${event.id}')">❌ Reject</button>
+      <button onclick="approveEvent('${event.id}')">✅ Approve${event.isUpdate ? ' Update' : ''}</button>
+      <button onclick="rejectEvent('${event.id}')">❌ Reject${event.isUpdate ? ' Update' : ''}</button>
     `
     container.appendChild(card)
   })
@@ -89,9 +92,21 @@ async function approveEvent(id) {
   if (!docSnapshot.exists()) return
 
   const eventData = docSnapshot.data()
-  await addDoc(collection(db, "events"), eventData)
-  await deleteDoc(docRef)
-  alert("Event approved!")
+  
+  if (eventData.isUpdate && eventData.originalEventId) {
+    const originalEventRef = doc(db, "events", eventData.originalEventId)
+    
+    const { isUpdate, originalEventId, ...cleanEventData } = eventData
+    
+    await updateDoc(originalEventRef, cleanEventData)
+    await deleteDoc(docRef)
+    alert("Event update approved! The live event has been updated.")
+  } else {
+    await addDoc(collection(db, "events"), eventData)
+    await deleteDoc(docRef)
+    alert("Event approved!")
+  }
+  
   loadApproveEvents()
 }
 
@@ -109,9 +124,9 @@ async function rejectEvent(id) {
   loadApproveEvents()
 }
 
-function formatDate(dateString) {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', {
+function formatDate(timestamp) {
+  const date = new Date(timestamp.seconds * 1000)
+  return date.toLocaleDateString('de-DE', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
