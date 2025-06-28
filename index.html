@@ -3,211 +3,503 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Find Hackathons easily - Hacktracker</title>
+  <title>Hacktracker - Find Hackathons | Developer IDE</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
   <style>
-    .event-card {
-      border: none;
-      border-radius: 16px;
+    /* Index.html specific styles */
+    .main-content {
+      overflow-y: auto;
       padding: 0;
-      background: white;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      overflow: hidden;
     }
-    .event-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+
+    /* Compact Header Section */
+    .header-section {
+      background: var(--bg-primary);
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--border-primary);
     }
-    .event-image {
-      width: 100%;
-      height: 200px;
-      object-fit: contain;
-      border-radius: 0;
-      background-color: #f8f9fa;
-    }
-    .event-content {
-      padding: 20px;
-    }
-    .event-title {
-      font-size: 24px;
-      font-weight: bold;
-      margin: 0 0 12px 0;
-      color: #2c3e50;
-    }
-    .event-organization {
-      font-size: 16px;
-      color: #007bff;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-    .event-date {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-    }
-    .event-location {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-    }
-    .event-description {
-      font-size: 14px;
-      color: #444;
-      line-height: 1.5;
-      margin-bottom: 16px;
-    }
-    .event-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-top: 16px;
-      border-top: 1px solid #eee;
-      font-size: 12px;
-      color: #888;
-    }
-    .event-participants {
-      background: #f8f9fa;
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-weight: 500;
-    }
-    .hide-btn {
-      background: #6c757d;
-      color: white;
-      border: none;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 12px;
-      cursor: pointer;
-      margin-left: 10px;
-      transition: background-color 0.2s ease;
-    }
-    .hide-btn:hover {
-      background: #5a6268;
-    }
-    body {
-      background-color: #f5f7fa;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    }
-    #eventContainer {
+
+    .header-content {
       max-width: 1200px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      padding: 0 20px;
+      grid-template-columns: 1fr 400px;
+      gap: 2rem;
+      align-items: center;
     }
-    #authStatus {
-      margin: 15px 0;
-      padding: 10px;
-      background-color: #f8f9fa;
-      border-radius: 5px;
+
+    .hero-info {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
     }
-    #logoutBtn {
-      padding: 8px 16px;
-      background-color: #dc3545;
-      color: white;
-      border: none;
+
+    .hero-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--accent-blue);
+      font-family: 'JetBrains Mono', monospace;
+      margin: 0;
+      text-shadow: 0 0 20px rgba(88, 166, 255, 0.3);
+    }
+
+    .hero-subtitle {
+      font-size: 1rem;
+      color: var(--syntax-string);
+      margin: 0;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .hero-description {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    /* Compact Terminal Auth Section */
+    .terminal-auth {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-primary);
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      max-width: 400px;
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-primary);
+    }
+
+    .terminal-title {
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+    }
+
+    .terminal-content {
+      color: var(--text-primary);
+      font-size: 0.875rem;
+    }
+
+    .prompt {
+      color: var(--accent-green);
+    }
+
+    .command {
+      color: var(--accent-blue);
+    }
+
+    /* Compact IDE Style Buttons */
+    .ide-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+
+    .ide-btn {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-primary);
+      color: var(--text-primary);
+      padding: 0.5rem 0.75rem;
       border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
       cursor: pointer;
-      margin-left: 10px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
     }
-    #logoutBtn:hover {
-      background-color: #c82333;
+
+    .ide-btn:hover {
+      background: var(--border-primary);
+      border-color: var(--accent-blue);
+      transform: translateY(-1px);
     }
-    #adminLink, #addEventLink, #searchBtn, #clearBtn, #myEventsLink {
-      padding: 8px 16px;
-      background-color: #007bff;
+
+    .ide-btn:active {
+      transform: translateY(0);
+    }
+
+    .ide-btn.primary {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
       color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-left: 10px;
     }
-    #searchBtn:hover, #clearBtn:hover, #adminLink:hover, #addEventLink:hover, #myEventsLink:hover {
-      background-color: #0056b3;
+
+    .ide-btn.primary:hover {
+      background: #4493e6;
+      box-shadow: 0 0 20px rgba(68, 147, 230, 0.3);
     }
-    #searchInput {
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      margin-right: 10px;
+
+    .ide-btn.success {
+      background: var(--accent-green);
+      border-color: var(--accent-green);
+      color: white;
     }
-    .page-header {
-      text-align: center;
-      margin: 30px 0;
-      color: #2c3e50;
+
+    .ide-btn.success:hover {
+      background: #2ea043;
+      box-shadow: 0 0 20px rgba(46, 160, 67, 0.3);
     }
-    .search-container {
-      text-align: center;
-      margin: 20px 0 40px 0;
-      padding: 20px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
+
+    .ide-btn.danger {
+      background: var(--accent-red);
+      border-color: var(--accent-red);
+      color: white;
     }
-    .events-section {
+
+    .ide-btn.danger:hover {
+      background: #e5484d;
+      box-shadow: 0 0 20px rgba(229, 72, 77, 0.3);
+    }
+
+    /* Compact Search & Events Section */
+    .content-section {
+      background: var(--bg-secondary);
+      padding: 1.5rem 2rem;
+      min-height: calc(100vh - 200px);
+    }
+
+    .content-container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 0 20px;
     }
+
+    .search-bar {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-primary);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .search-prompt {
+      color: var(--accent-green);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      white-space: nowrap;
+    }
+
+    .search-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      outline: none;
+      padding: 0.25rem 0;
+    }
+
+    .search-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .search-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* Prominent Events Section */
+    .events-header {
+      margin-bottom: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
     .events-title {
-      font-size: 28px;
-      color: #2c3e50;
-      margin-bottom: 30px;
-      text-align: center;
+      font-size: 1.25rem;
+      color: var(--accent-blue);
+      margin-bottom: 0.25rem;
     }
+
+    .events-subtitle {
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+    }
+
+    .view-all-link {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    #eventContainer {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+
+
+
+
+    /* Status Bar */
+    .status-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-tertiary);
+      border-top: 1px solid var(--border-primary);
+      padding: 0.5rem 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .status-left, .status-right {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+    }
+
+    /* Mobile Responsiveness - Index specific */
     @media (max-width: 768px) {
+      .header-content {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        text-align: center;
+      }
+
+      .hero-title {
+        font-size: 2rem;
+      }
+
+      .terminal-auth {
+        max-width: 100%;
+      }
+
+      .content-section {
+        padding: 1rem;
+      }
+
       #eventContainer {
         grid-template-columns: 1fr;
-        padding: 0 10px;
+        gap: 1rem;
       }
-      .event-content {
-        padding: 16px;
+
+      .search-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
       }
-      .event-title {
-        font-size: 20px;
+
+      .search-buttons {
+        margin-top: 0.5rem;
       }
-      .events-section {
-        padding: 0 10px;
+
+      .events-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header-section {
+        padding: 1rem;
+      }
+
+      .hero-title {
+        font-size: 1.75rem;
+      }
+
+      .ide-buttons {
+        flex-direction: column;
+        gap: 0.25rem;
       }
     }
   </style>
 </head>
 <body>
-  <div class="page-header">
-    <h1>Hacktracker</h1>
-    <p>Find hackathons easily</p>
+  <!-- IDE Header -->
+  <div class="ide-header">
+    <div class="window-controls">
+      <div class="window-control close"></div>
+      <div class="window-control minimize"></div>
+      <div class="window-control maximize"></div>
+    </div>
+    <div class="ide-tabs">
+      <div class="ide-tab active">hacktracker.js</div>
+      <div class="ide-tab">events.json</div>
+      <div class="ide-tab">README.md</div>
+    </div>
   </div>
   
-  <div id="authStatus">
-    <p id="userStatus">Checking login status...</p>
-    <a href="signin.html" id="signInLink">Sign In</a>
-    <button onclick="logout()" id="logoutBtn" style="display: none;">Logout</button>
-  </div>
-  
-  <button onclick="window.location.href='add'" id="addEventLink" style="display: none;">Add a new event</button>
-  <button onclick="window.location.href='my-events'" id="myEventsLink" style="display: none;">My Events</button>
-  <button onclick="window.location.href='admin'" id="adminLink" style="display: none;">Admin Panel</button>
+  <!-- Main IDE Container -->
+  <div class="ide-container">
+    <!-- File Explorer Sidebar -->
+    <div class="file-explorer">
+      <div class="explorer-header">
+        <span>📂</span>
+        <span>Explorer</span>
+      </div>
+      <ul class="folder-tree">
+        <li class="folder-item folder">hacktracker/</li>
+        <li class="folder-item file html active" onclick="navigateTo('index.html')">├── index.html</li>
+        <li class="folder-item file html" onclick="navigateTo('hackathons.html')">├── hackathons.html</li>
+        <li class="folder-item file html" onclick="navigateTo('organizers.html')">├── organizers.html</li>
+        <li id="authItems">
+          <!-- Dynamic items will be inserted here -->
+        </li>
+      </ul>
+    </div>
 
-  <div class="search-container">
-    <input type="text" id="searchInput" placeholder="Search for hackathons" oninput="searchEvents(this.value);">
-    <button id="searchBtn">Search</button>
-    <button id="clearBtn">Clear</button>
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Compact Header Section -->
+      <div class="header-section">
+        <div class="header-content">
+          <div class="hero-info">
+            <h1 class="hero-title">Hacktracker</h1>
+            <p class="hero-subtitle">// Your IDE for discovering hackathons</p>
+            <p class="hero-description">Find amazing hackathons worldwide. Built for developers, builders, and creators who want to discover coding competitions, find new friends and build amazing projects. By Lenny</p>
+          </div>
+          
+          <!-- Compact Terminal Auth -->
+          <div class="terminal-auth">
+            <div class="terminal-header">
+              <div class="window-controls">
+                <div class="window-control close"></div>
+                <div class="window-control minimize"></div>
+                <div class="window-control maximize"></div>
+              </div>
+              <div class="terminal-title">auth@hacktracker</div>
+            </div>
+            <div class="terminal-content">
+              <div>
+                <span class="prompt">$</span>
+                <span class="command">whoami</span>
+              </div>
+              <div id="userStatus">Checking authentication...</div>
+              
+              <div class="ide-buttons">
+                <a href="signin.html" id="signInLink" class="ide-btn primary">
+                  <span>🚀</span> login
+                </a>
+                <button onclick="logout()" id="logoutBtn" class="ide-btn danger" style="display: none;">
+                  <span>👋</span> exit
+                </button>
+                <button onclick="window.location.href='account'" id="accountLink" class="ide-btn" style="display: none;">
+                  <span>👤</span> account
+                </button>
+                <button onclick="window.location.href='add'" id="addEventLink" class="ide-btn success" style="display: none;">
+                  <span>➕</span> add
+                </button>
+                <button onclick="window.location.href='my-content'" id="myEventsLink" class="ide-btn" style="display: none;">
+                  <span>📋</span> my content
+                </button>
+                <button onclick="window.location.href='admin'" id="adminLink" class="ide-btn" style="display: none;">
+                  <span>⚡</span> admin
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search & Events Section -->
+      <div class="content-section">
+        <div class="content-container">
+          <!-- Compact Search Bar -->
+          <div class="search-bar">
+            <span class="search-prompt">search@hacktracker:~$</span>
+            <input 
+              type="text" 
+              class="search-input" 
+              id="searchInput"
+              placeholder="grep -i 'hackathon' events.json | jq '.name, .location, .tags[]'"
+              oninput="searchEvents(this.value);"
+            >
+            <div class="search-buttons">
+              <button id="searchBtn" class="ide-btn primary">
+                <span>🔍</span> exec
+              </button>
+              <button id="clearBtn" class="ide-btn">
+                <span>✨</span> clear
+              </button>
+            </div>
+          </div>
+
+          <!-- Events Section -->
+          <div class="events-header">
+            <div>
+              <h2 class="events-title">function getTrendingEvents() { return trending; }</h2>
+              <p class="events-subtitle">// Trending hackathons right now</p>
+            </div>
+            <div class="view-all-link">
+              <a href="hackathons.html" class="ide-btn">
+                <span>📂</span> View All Events
+              </a>
+            </div>
+          </div>
+          <div id="eventContainer">Loading events...</div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="events-section">
-    <h2 class="events-title">All Events</h2>
-    <div id="eventContainer">Loading events...</div>
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-left">
+      <div class="status-item">
+        <div class="status-indicator"></div>
+        <span>Connected</span>
+      </div>
+      <div class="status-item">
+        <span>JavaScript</span>
+      </div>
+      <div class="status-item">
+        <span>UTF-8</span>
+      </div>
+    </div>
+    <div class="status-right">
+      <div class="status-item">
+        <span>Ln 420, Col 69</span>
+      </div>
+      <div class="status-item">
+        <span>Spaces: 8</span>
+      </div>
+    </div>
   </div>
 
+  <script>
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+  </script>
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>

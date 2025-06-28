@@ -2,33 +2,126 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Panel - Approve Events</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
   <style>
-    .event-card {
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      padding: 15px;
-      margin: 15px 0;
-      max-width: 500px;
+    /* Page-specific styles */
+    #adminPanel p {
+      text-align: center;
+      color: var(--text-secondary);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 2rem;
     }
-    button {
-      margin-right: 10px;
-      padding: 8px;
+
+    .admin-section {
+      margin-bottom: 3rem;
+    }
+
+    .admin-section h2 {
+      color: var(--accent-blue);
+      border-bottom: 2px solid var(--border-primary);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .admin-section p {
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+    }
+
+    #eventContainer, #organizationContainer {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .event-card {
+      border: 1px solid var(--border-primary);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+      background: var(--bg-secondary);
+      font-family: 'Inter', sans-serif;
+    }
+
+    @media (max-width: 768px) {
+      .event-card {
+        padding: 15px;
+        margin: 15px 0;
+      }
     }
   </style>
 </head>
 <body>
-  <div id="authCheck" style="display: none;">
-    <p>Checking authentication...</p>
+  <!-- IDE Header -->
+  <div class="ide-header">
+    <div class="window-controls">
+      <div class="window-control close"></div>
+      <div class="window-control minimize"></div>
+      <div class="window-control maximize"></div>
+    </div>
+    <div class="ide-tabs">
+      <div class="ide-tab active">admin.html</div>
+      <div class="ide-tab">admin.js</div>
+    </div>
   </div>
   
-  <div id="adminPanel" style="display: none;">
-    <h1>Admin Panel</h1>
-    <p>Approve or delete new event submissions</p>
-    <div id="eventContainer">Loading events...</div>
+  <!-- Main IDE Container -->
+  <div class="ide-container">
+    <!-- File Explorer Sidebar -->
+    <div class="file-explorer">
+      <div class="explorer-header">
+        <span>📂</span>
+        <span>Explorer</span>
+      </div>
+      <ul class="folder-tree">
+        <li class="folder-item folder">hacktracker/</li>
+        <li class="folder-item file html" onclick="navigateTo('index.html')">├── index.html</li>
+        <li class="folder-item file html" onclick="navigateTo('hackathons.html')">├── hackathons.html</li>
+        <li class="folder-item file html" onclick="navigateTo('organizers.html')">├── organizers.html</li>
+        <li id="authItems">
+          <!-- Dynamic items will be inserted here -->
+        </li>
+      </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div id="authCheck" style="display: none;">
+        <p>Checking authentication...</p>
+      </div>
+      
+      <div id="adminPanel" style="display: none;">
+        <h1>Admin Panel</h1>
+        
+        <!-- Organizations Section -->
+        <div class="admin-section">
+          <h2>Pending Organizations</h2>
+          <p>Review and approve new organization submissions</p>
+          <div id="organizationContainer">Loading organizations...</div>
+        </div>
+        
+        <!-- Events Section -->
+        <div class="admin-section">
+          <h2>Pending Events</h2>
+          <p>Approve or delete new event submissions</p>
+          <div id="eventContainer">Loading events...</div>
+        </div>
+      </div>
+
+      <a href="index.html" class="back-link">Back to the main page</a>
+    </div>
   </div>
 
+  <script>
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+  </script>
   <script type="module" src="./src/admin.js"></script>
-  <a href="index">Back to the main page</a>
 </body>
 </html>

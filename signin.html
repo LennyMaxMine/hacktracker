@@ -4,22 +4,91 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sign In - Hacktracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Page-specific styles */
+    #authContainer {
+      max-width: 400px;
+    }
+
+    #authContainer input, #authContainer button {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+
+    #authContainer button {
+      margin-bottom: 0.5rem;
+    }
+
+    #userStatus {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+    }
+  </style>
 </head>
 <body>
-  <h1>Hacktracker</h1>
+  <!-- IDE Header -->
+  <div class="ide-header">
+    <div class="window-controls">
+      <div class="window-control close"></div>
+      <div class="window-control minimize"></div>
+      <div class="window-control maximize"></div>
+    </div>
+    <div class="ide-tabs">
+      <div class="ide-tab active">signin.html</div>
+      <div class="ide-tab">auth.js</div>
+      <div class="ide-tab">styles.css</div>
+    </div>
+  </div>
   
-  <div id="authContainer">
-    <h2>Login or Register</h2>
-    <input type="email" id="email" placeholder="Email" />
-    <input type="password" id="password" placeholder="Password" />
-    <button onclick="register()">Register</button>
-    <button onclick="login()">Login</button>
-    <button onclick="logout()">Logout</button>
-    <p id="userStatus"></p>
+  <!-- Main IDE Container -->
+  <div class="ide-container">
+    <!-- File Explorer Sidebar -->
+    <div class="file-explorer">
+      <div class="explorer-header">
+        <span>📂</span>
+        <span>Explorer</span>
+      </div>
+      <ul class="folder-tree">
+        <li class="folder-item folder">hacktracker/</li>
+        <li class="folder-item file html" onclick="navigateTo('index.html')">├── index.html</li>
+        <li class="folder-item file html" onclick="navigateTo('hackathons.html')">├── hackathons.html</li>
+        <li class="folder-item file html" onclick="navigateTo('organizers.html')">├── organizers.html</li>
+        <li id="authItems">
+          <!-- Dynamic items will be inserted here -->
+        </li>
+      </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <h1>Hacktracker</h1>
+      
+      <div id="authContainer">
+        <h2>Login or Register</h2>
+        <input type="email" id="email" placeholder="Email" />
+        <input type="password" id="password" placeholder="Password" />
+        <button onclick="register()">Register</button>
+        <button onclick="login()">Login</button>
+        <button onclick="logout()">Logout</button>
+        <p id="userStatus"></p>
+      </div>
+
+      <a href="index.html" class="back-link">Back to the main page</a>
+    </div>
   </div>
 
-  <a href="index.html">Back to the main page</a>
-
+  <script>
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+  </script>
   <script type="module" src="./src/auth.js"></script>
 </body>
 </html> 

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Content - Hacktracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Content Type Selector Styles */
+    .content-type-selector {
+      max-width: 800px;
+      margin: 0 auto 2rem auto;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+
+    .selector-header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .selector-header h2 {
+      color: var(--accent-blue);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.25rem;
+      margin: 0 0 0.5rem 0;
+    }
+
+    .selector-header p {
+      color: var(--text-secondary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      margin: 0;
+    }
+
+    .selector-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .selector-btn {
+      background: var(--bg-tertiary);
+      border: 2px solid var(--border-primary);
+      border-radius: 8px;
+      padding: 1.5rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.5rem;
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .selector-btn:hover {
+      border-color: var(--accent-blue);
+      background: rgba(88, 166, 255, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .selector-btn.active {
+      border-color: var(--accent-blue);
+      background: rgba(88, 166, 255, 0.15);
+      box-shadow: 0 0 20px rgba(88, 166, 255, 0.2);
+    }
+
+    .btn-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .btn-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .btn-desc {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .content-section {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .section-title {
+      color: var(--accent-blue);
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-subtitle {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
+    @media (max-width: 768px) {
+      .selector-buttons {
+        grid-template-columns: 1fr;
+      }
+
+      .content-type-selector {
+        margin: 0 1rem 2rem 1rem;
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- IDE Header -->
+  <div class="ide-header">
+    <div class="window-controls">
+      <div class="window-control close"></div>
+      <div class="window-control minimize"></div>
+      <div class="window-control maximize"></div>
+    </div>
+    <div class="ide-tabs">
+      <div class="ide-tab active">my-content.html</div>
+      <div class="ide-tab">my-content.js</div>
+      <div class="ide-tab">user-data.json</div>
+    </div>
+  </div>
+  
+  <!-- Main IDE Container -->
+  <div class="ide-container">
+    <!-- File Explorer Sidebar -->
+    <div class="file-explorer">
+      <div class="explorer-header">
+        <span>📂</span>
+        <span>Explorer</span>
+      </div>
+      <ul class="folder-tree">
+        <li class="folder-item folder">hacktracker/</li>
+        <li class="folder-item file html" onclick="navigateTo('index.html')">├── index.html</li>
+        <li class="folder-item file html" onclick="navigateTo('hackathons.html')">├── hackathons.html</li>
+        <li class="folder-item file html" onclick="navigateTo('organizers.html')">├── organizers.html</li>
+        <li id="authItems">
+          <!-- Dynamic items will be inserted here -->
+        </li>
+      </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="page-header">
+        <h1>My Content</h1>
+        <p>View and manage your submitted events and organizations</p>
+      </div>
+      
+      <div id="authCheck" style="display: none;">
+        <p>Checking authentication...</p>
+      </div>
+      
+      <div id="myContentPanel" style="display: none;">
+        <!-- Content Type Selector -->
+        <div class="content-type-selector">
+          <div class="selector-header">
+            <h2>// Choose content type to view</h2>
+            <p>Switch between your submitted events and organizations</p>
+          </div>
+          <div class="selector-buttons">
+            <button type="button" id="eventsBtn" class="selector-btn active" onclick="switchToEvents()">
+              <span class="btn-icon">🎯</span>
+              <span class="btn-title">My Events</span>
+              <span class="btn-desc">View your submitted hackathons</span>
+            </button>
+            <button type="button" id="organizationsBtn" class="selector-btn" onclick="switchToOrganizations()">
+              <span class="btn-icon">🏢</span>
+              <span class="btn-title">My Organizations</span>
+              <span class="btn-desc">View your submitted organizations</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Events Section -->
+        <div id="eventsSection" class="content-section" style="display: block;">
+          <div class="section-header">
+            <h2 class="section-title">// My Events</h2>
+            <p class="section-subtitle">All hackathons you've submitted to the platform</p>
+          </div>
+          <div id="eventContainer">Loading your events...</div>
+        </div>
+
+        <!-- Organizations Section -->
+        <div id="organizationsSection" class="content-section" style="display: none;">
+          <div class="section-header">
+            <h2 class="section-title">// My Organizations</h2>
+            <p class="section-subtitle">All organizations you've submitted to the platform</p>
+          </div>
+          <div id="organizationContainer">Loading your organizations...</div>
+        </div>
+      </div>
+
+      <a href="index.html" class="back-link">Back to the main page</a>
+    </div>
+  </div>
+
+  <script>
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+  </script>
+  <script type="module" src="./src/my-content.js"></script>
+</body>
+</html> 

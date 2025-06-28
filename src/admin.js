@@ -14,6 +14,26 @@ async function checkAdminStatus(email) {
   }
 }
 
+function updateSidebar(user, isAdmin) {
+  const authItems = document.getElementById('authItems')
+  if (!authItems) return
+  
+  let sidebarHTML = ''
+  
+  if (user) {
+    // User is logged in - show account, add, my-events, admin (current page)
+    sidebarHTML += '<li class="folder-item file html" onclick="navigateTo(\'account.html\')">├── account.html</li>'
+    sidebarHTML += '<li class="folder-item file html" onclick="navigateTo(\'add.html\')">├── add.html</li>'
+    sidebarHTML += '<li class="folder-item file html" onclick="navigateTo(\'my-content.html\')">├── my-content.html</li>'
+    sidebarHTML += '<li class="folder-item file html active" onclick="navigateTo(\'admin.html\')">└── admin.html</li>'
+  } else {
+    // User is logged out - show signin
+    sidebarHTML += '<li class="folder-item file html" onclick="navigateTo(\'signin.html\')">└── signin.html</li>'
+  }
+  
+  authItems.innerHTML = sidebarHTML
+}
+
 let currentUser = null
 
 onAuthStateChanged(auth, async (user) => {
@@ -24,6 +44,7 @@ onAuthStateChanged(auth, async (user) => {
     authCheck.style.display = 'block'
     authCheck.innerHTML = '<p>Redirecting to sign in page...</p>'
     adminPanel.style.display = 'none'
+    updateSidebar(user, false)
     setTimeout(() => {
       window.location.href = 'signin.html'
     }, 1000)
@@ -36,6 +57,7 @@ onAuthStateChanged(auth, async (user) => {
     
     if (!isAdmin) {
       authCheck.innerHTML = '<p>Access denied. Admin privileges required. Redirecting to main page...</p>'
+      updateSidebar(user, false)
       setTimeout(() => {
         window.location.href = 'index.html'
       }, 2000)
@@ -43,6 +65,8 @@ onAuthStateChanged(auth, async (user) => {
       currentUser = user
       authCheck.style.display = 'none'
       adminPanel.style.display = 'block'
+      updateSidebar(user, isAdmin)
+      loadPendingOrganizations()
       loadApproveEvents()
     }
   }
@@ -63,6 +87,10 @@ async function loadApproveEvents() {
     card.className = "event-card"
 
     const updateBadge = event.isUpdate ? '<span style="background: #ffc107; color: #212529; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-left: 10px;">📝 UPDATE</span>' : ''
+    
+    const tagsHtml = event.tags && event.tags.length > 0 ? `
+      <p><strong>Tags:</strong> ${event.tags.map(tag => `<span style="background: #007bff; color: white; padding: 2px 6px; border-radius: 8px; font-size: 11px; margin-right: 4px;">#${tag.name}</span>`).join('')}</p>
+    ` : ''
 
     card.innerHTML = `
       <h2>${event.name}${updateBadge}</h2>
@@ -70,6 +98,7 @@ async function loadApproveEvents() {
       <p><strong>Organization:</strong> ${event.organization}</p>
       <p><strong>Date:</strong> ${formatDate(event.startDate)} to ${formatDate(event.endDate)}</p>
       <p><strong>Location:</strong> ${event.location}</p>
+      ${tagsHtml}
       <p><strong>Description:</strong> ${event.description}</p>
       <p><strong>Participants:</strong> ${event.participants || 'N/A'}</p>
       <img src="${event.image}" alt="${event.name}" style="max-width: 100%;">
@@ -133,5 +162,106 @@ function formatDate(timestamp) {
   })
 }
 
+async function loadPendingOrganizations() {
+  const container = document.getElementById("organizationContainer")
+  container.innerHTML = 'Loading...'
+  
+  try {
+    const snapshot = await getDocs(collection(db, "organizations-pending"))
+    container.innerHTML = ''
+
+    const organizations = []
+    snapshot.forEach(docSnapshot => {
+      organizations.push({ id: docSnapshot.id, ...docSnapshot.data() })
+    })
+
+    organizations.forEach(org => {
+      const card = document.createElement("div")
+      card.className = "event-card"
+
+      card.innerHTML = `
+        <h2>${org.name}</h2>
+        <p><strong>Website:</strong> <a href="${org.website}" target="_blank">${org.website}</a></p>
+        <p><strong>Location:</strong> ${org.location}</p>
+        <p><strong>Industry:</strong> ${org.industry || 'Not specified'}</p>
+        <p><strong>Size:</strong> ${org.size || 'Not specified'}</p>
+        <p><strong>Description:</strong> ${org.description}</p>
+        <img src="${org.logo}" alt="${org.name} logo" style="max-width: 200px; max-height: 100px; object-fit: contain;">
+        <p><strong>Submitted by:</strong> ${org.user}</p>
+        <p><strong>Submitted on:</strong> ${new Date(org.createdAt).toLocaleDateString()}</p>
+        <br/><br/>
+        <button onclick="approveOrganization('${org.id}')">✅ Approve Organization</button>
+        <button onclick="rejectOrganization('${org.id}')">❌ Reject Organization</button>
+      `
+      container.appendChild(card)
+    })
+
+    if (organizations.length === 0) {
+      container.innerHTML = "<p>No organizations waiting for approval.</p>"
+    }
+  } catch (error) {
+    console.error("Error loading organizations:", error)
+    container.innerHTML = "<p>Error loading organizations.</p>"
+  }
+}
+
+async function approveOrganization(id) {
+  try {
+    const docRef = doc(db, "organizations-pending", id)
+    const docSnapshot = await getDoc(docRef)
+    if (!docSnapshot.exists()) return
+
+    const orgData = docSnapshot.data()
+    
+    // Add to approved organizations collection
+    await addDoc(collection(db, "organizations"), {
+      ...orgData,
+      approvedAt: new Date().toISOString(),
+      approvedBy: currentUser.email,
+      status: 'approved'
+    })
+    
+    // Remove from pending
+    await deleteDoc(docRef)
+    
+    alert("Organization approved!")
+    loadPendingOrganizations()
+  } catch (error) {
+    console.error("Error approving organization:", error)
+    alert("Failed to approve organization.")
+  }
+}
+
+async function rejectOrganization(id) {
+  if (!confirm("Are you sure you want to reject this organization?")) return
+  
+  try {
+    const docRef = doc(db, "organizations-pending", id)
+    const docSnapshot = await getDoc(docRef)
+    if (!docSnapshot.exists()) return
+
+    const orgData = docSnapshot.data()
+    
+    // Add to rejected organizations collection
+    await addDoc(collection(db, "organizations-rejected"), {
+      ...orgData,
+      rejectedAt: new Date().toISOString(),
+      rejectedBy: currentUser.email,
+      status: 'rejected'
+    })
+    
+    // Remove from pending
+    await deleteDoc(docRef)
+    
+    alert("Organization rejected.")
+    loadPendingOrganizations()
+  } catch (error) {
+    console.error("Error rejecting organization:", error)
+    alert("Failed to reject organization.")
+  }
+}
+
 window.approveEvent = approveEvent
-window.rejectEvent = rejectEvent 
+window.rejectEvent = rejectEvent
+window.approveOrganization = approveOrganization
+window.rejectOrganization = rejectOrganization 

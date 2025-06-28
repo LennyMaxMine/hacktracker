@@ -1,5 +1,5 @@
 import { db, auth } from './firebase.js'
-import { collection, getDocs, doc, getDoc, addDoc, query, where } from 'firebase/firestore'
+import { collection, getDocs, doc, getDoc, addDoc } from 'firebase/firestore'
 import { signOut, onAuthStateChanged } from 'firebase/auth'
 
 async function checkAdminStatus(email) {
@@ -13,12 +13,15 @@ async function checkAdminStatus(email) {
 }
 
 let allEvents = []
-
 let isCurrentUserAdmin = false
 
 async function showEvents(eventsToShow) {
   const container = document.getElementById('eventContainer')
+  const eventCount = document.getElementById('eventCount')
   container.innerHTML = ''
+  
+  // Update event count
+  eventCount.textContent = `${eventsToShow.length} events found`
 
   if (eventsToShow.length === 0) {
     container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); font-family: \'JetBrains Mono\', monospace; padding: 2rem;">// No events found matching your search criteria</div>'
@@ -90,27 +93,11 @@ async function showEvents(eventsToShow) {
       }
     }
     
-    // Add hover effects
-    card.addEventListener('mouseenter', () => {
-      card.style.transform = 'translateY(-2px)'
-    })
-    
-    card.addEventListener('mouseleave', () => {
-      card.style.transform = 'translateY(0)'
-    })
-    
     container.appendChild(card)
   })
 }
 
 async function searchEvents(searchValue) {
-  if (!searchValue.trim()) {
-    // If search is empty, show trending events again
-    const trendingEvents = getTrendingEvents(allEvents)
-    await showEvents(trendingEvents)
-    return
-  }
-  
   const filtered = allEvents.filter(event => {
     const searchLower = searchValue.toLowerCase()
     return event.name.toLowerCase().includes(searchLower) ||
@@ -130,39 +117,13 @@ function formatDate(timestamp) {
   })
 }
 
-function getTrendingEvents(events) {
-  // Calculate trending score for each event
-  const now = new Date()
-  const scoredEvents = events.map(event => {
-    const startDate = new Date(event.startDate.seconds * 1000)
-    const participants = event.participants || 0
-    
-    // Time factor: events starting soon get higher score
-    const daysUntilStart = Math.max(0, (startDate - now) / (1000 * 60 * 60 * 24))
-    const timeFactor = daysUntilStart <= 30 ? (30 - daysUntilStart) / 30 : 0
-    
-    // Participation factor: more participants = higher score
-    const participantFactor = Math.min(participants / 1000, 1) // Normalize to max 1000 participants
-    
-    // Recency factor: recently added events get slight boost
-    const addedRecently = 1 // Could be enhanced with creation timestamp
-    
-    const trendingScore = (timeFactor * 0.5) + (participantFactor * 0.3) + (addedRecently * 0.2)
-    
-    return { ...event, trendingScore }
-  })
-  
-  // Sort by trending score and take top 6
-  return scoredEvents
-    .sort((a, b) => b.trendingScore - a.trendingScore)
-    .slice(0, 6)
-}
-
 async function loadEvents() {
   try {
     // Show loading state
     const container = document.getElementById('eventContainer')
-    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); font-family: \'JetBrains Mono\', monospace; padding: 2rem;">// Loading trending events...</div>'
+    const eventCount = document.getElementById('eventCount')
+    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); font-family: \'JetBrains Mono\', monospace; padding: 2rem;">// Loading events from database...</div>'
+    eventCount.textContent = 'Loading...'
     
     const querySnapshot = await getDocs(collection(db, "events"))
     allEvents = []
@@ -170,6 +131,7 @@ async function loadEvents() {
       allEvents.push({ id: docSnapshot.id, ...docSnapshot.data() })
     })
     
+    // Filter out hidden events
     const hiddenSnapshot = await getDocs(collection(db, "hidden"))
     const hiddenEventIds = []
     hiddenSnapshot.forEach((doc) => {
@@ -177,16 +139,22 @@ async function loadEvents() {
     })
     allEvents = allEvents.filter(event => !hiddenEventIds.includes(event.id))
     
-    // Get trending events instead of all events
-    const trendingEvents = getTrendingEvents(allEvents)
+    // Sort events by start date (newest first)
+    allEvents.sort((a, b) => {
+      const dateA = new Date(a.startDate.seconds * 1000)
+      const dateB = new Date(b.startDate.seconds * 1000)
+      return dateB - dateA
+    })
     
-    await showEvents(trendingEvents)
+    await showEvents(allEvents)
   } catch (error) {
     console.error("Error loading events:", error)
     document.getElementById('eventContainer').innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--accent-red); font-family: \'JetBrains Mono\', monospace; padding: 2rem;">// Error: Failed to load events from database</div>'
+    document.getElementById('eventCount').textContent = 'Error loading events'
   }
 }
 
+// Event handlers
 document.getElementById('searchInput').addEventListener('input', (e) => {
   searchEvents(e.target.value)
 })
@@ -198,19 +166,8 @@ document.getElementById('searchBtn').addEventListener('click', () => {
 
 document.getElementById('clearBtn').addEventListener('click', () => {
   document.getElementById('searchInput').value = ''
-  const trendingEvents = getTrendingEvents(allEvents)
-  showEvents(trendingEvents)
+  searchEvents('')
 })
-
-function logout() {
-  signOut(auth).then(() => {
-    const status = document.getElementById('userStatus')
-    status.innerHTML = 'Successfully logged out!'
-    setTimeout(() => {
-      status.textContent = 'Not authenticated'
-    }, 2000)
-  })
-}
 
 async function hideEvent(eventId) {
   if (!auth.currentUser) {
@@ -270,48 +227,17 @@ function updateSidebar(user, isAdmin) {
 }
 
 onAuthStateChanged(auth, async (user) => {
-  const status = document.getElementById('userStatus')
-  const signInLink = document.getElementById('signInLink')
-  const logoutBtn = document.getElementById('logoutBtn')
-  const accountLink = document.getElementById('accountLink')
-  const addEventLink = document.getElementById('addEventLink')
-  const myEventsLink = document.getElementById('myEventsLink')
-  const adminLink = document.getElementById('adminLink')
-  
   let isAdmin = false
   
   if (user) {
-    status.innerHTML = `${user.email} (authenticated)`
-    signInLink.style.display = 'none'
-    logoutBtn.style.display = 'inline-flex'
-    accountLink.style.display = 'inline-flex'
-    addEventLink.style.display = 'inline-flex'
-    myEventsLink.style.display = 'inline-flex'
-    
     isAdmin = await checkAdminStatus(user.email)
     isCurrentUserAdmin = isAdmin
-    
-    if (isAdmin && adminLink) {
-      adminLink.style.display = 'inline-flex'
-    } else if (adminLink) {
-      adminLink.style.display = 'none'
-    }
   } else {
     isCurrentUserAdmin = false
-    status.innerHTML = 'Not authenticated'
-    signInLink.style.display = 'inline-flex'
-    logoutBtn.style.display = 'none'
-    accountLink.style.display = 'none'
-    addEventLink.style.display = 'none'
-    myEventsLink.style.display = 'none'
-    if (adminLink) {
-      adminLink.style.display = 'none'
-    }
   }
   
   updateSidebar(user, isAdmin)
   await loadEvents()
 })
 
-window.logout = logout
-window.hideEvent = hideEvent
+window.hideEvent = hideEvent 

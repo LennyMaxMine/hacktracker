@@ -1,11 +1,14 @@
 import { db, auth } from './firebase.js'
-import { collection, doc, getDoc, updateDoc, addDoc, deleteDoc, Timestamp } from 'firebase/firestore'
+import { collection, doc, getDoc, updateDoc, addDoc, deleteDoc, getDocs, Timestamp } from 'firebase/firestore'
 import { onAuthStateChanged } from 'firebase/auth'
 
 let currentUser = null
 let eventData = null
 let eventId = null
 let eventStatus = null
+let selectedTags = []
+let availableTags = []
+let isUserAdmin = false
 
 const urlParams = new URLSearchParams(window.location.search)
 eventId = urlParams.get('id')
@@ -13,7 +16,43 @@ eventStatus = urlParams.get('status')
 
 if (!eventId || !eventStatus) {
   alert('Invalid event link')
-  window.location.href = 'my-events.html'
+  window.location.href = 'my-content.html'
+}
+
+async function checkAdminStatus(email) {
+  try {
+    const adminDoc = await getDoc(doc(db, "admins", email))
+    return adminDoc.exists() && adminDoc.data().isAdmin === true
+  } catch (error) {
+    console.error("Error checking admin status:", error)
+    return false
+  }
+}
+
+function updateSidebar(user, isAdmin) {
+  const authItems = document.getElementById('authItems')
+  if (!authItems) return
+  
+  let sidebarHTML = ''
+  
+  if (user) {
+    // User is logged in - show account, add, my-events, and admin (if admin)
+    sidebarHTML += '<li class="folder-item file html" onclick="navigateTo(\'account.html\')">├── account.html</li>'
+    sidebarHTML += '<li class="folder-item file html" onclick="navigateTo(\'add.html\')">├── add.html</li>'
+    sidebarHTML += '<li class="folder-item file html" onclick="navigateTo(\'my-content.html\')">├── my-content.html</li>'
+    
+    if (isAdmin) {
+      sidebarHTML += '<li class="folder-item file html" onclick="navigateTo(\'admin.html\')">└── admin.html</li>'
+    } else {
+      // Change the last item to have └── if no admin
+      sidebarHTML = sidebarHTML.replace(/├── my-content.html/, '└── my-content.html')
+    }
+  } else {
+    // User is logged out - show signin
+    sidebarHTML += '<li class="folder-item file html" onclick="navigateTo(\'signin.html\')">└── signin.html</li>'
+  }
+  
+  authItems.innerHTML = sidebarHTML
 }
 
 onAuthStateChanged(auth, async (user) => {
@@ -24,16 +63,191 @@ onAuthStateChanged(auth, async (user) => {
     authCheck.style.display = 'block'
     authCheck.innerHTML = '<p>Redirecting to sign in page...</p>'
     editContainer.style.display = 'none'
+    updateSidebar(user, false)
     setTimeout(() => {
       window.location.href = 'signin.html'
     }, 1000)
   } else {
     currentUser = user
+    isUserAdmin = await checkAdminStatus(user.email)
     authCheck.style.display = 'none'
     editContainer.style.display = 'block'
+    updateSidebar(user, isUserAdmin)
     await loadEventData()
+    await loadAvailableTags()
+    setupTagHandlers()
+    updateHelpText()
   }
 })
+
+function updateHelpText() {
+  const helpText = document.querySelector('.tags-help')
+  const addTagBtn = document.getElementById('addTagBtn')
+  const addGlobalTagBtn = document.getElementById('addGlobalTagBtn')
+  
+  if (isUserAdmin) {
+    helpText.textContent = 'Add Tag: custom for this event | Add to Firebase: available for everyone'
+    addTagBtn.textContent = 'Add Tag'
+    addGlobalTagBtn.style.display = 'inline-block'
+  } else {
+    helpText.textContent = 'Custom tags will only be used for this event'
+    addTagBtn.textContent = 'Add Tag'
+    addGlobalTagBtn.style.display = 'none'
+  }
+}
+
+async function loadAvailableTags() {
+  try {
+    const snapshot = await getDocs(collection(db, "tags"))
+    availableTags = []
+    snapshot.forEach(doc => {
+      availableTags.push({ id: doc.id, ...doc.data() })
+    })
+    displayAvailableTags()
+  } catch (error) {
+    console.error("Error loading tags:", error)
+    document.getElementById('availableTags').innerHTML = 'Failed to load tags'
+  }
+}
+
+function displayAvailableTags() {
+  const container = document.getElementById('availableTags')
+  if (availableTags.length === 0) {
+    container.innerHTML = 'No tags available yet. Add the first one!'
+    return
+  }
+  
+  container.innerHTML = ''
+  availableTags.forEach(tag => {
+    if (!selectedTags.find(selected => selected.name === tag.name)) {
+      const tagElement = document.createElement('span')
+      tagElement.className = 'available-tag'
+      tagElement.textContent = `#${tag.name}`
+      tagElement.onclick = () => addExistingTag(tag)
+      container.appendChild(tagElement)
+    }
+  })
+}
+
+function addExistingTag(tag) {
+  if (!selectedTags.find(selected => selected.name === tag.name)) {
+    selectedTags.push(tag)
+    displaySelectedTags()
+    displayAvailableTags()
+  }
+}
+
+function displaySelectedTags() {
+  const container = document.getElementById('selectedTags')
+  container.innerHTML = ''
+  
+  selectedTags.forEach((tag, index) => {
+    const tagElement = document.createElement('div')
+    tagElement.className = 'tag'
+    tagElement.innerHTML = `
+      #${tag.name}
+      <span class="remove" onclick="removeTag(${index})">×</span>
+    `
+    container.appendChild(tagElement)
+  })
+}
+
+function removeTag(index) {
+  selectedTags.splice(index, 1)
+  displaySelectedTags()
+  displayAvailableTags()
+}
+
+async function addCustomTag(tagName) {
+  const trimmedName = tagName.trim().toLowerCase().replace(/\s+/g, '-')
+  if (!trimmedName) return
+  
+  // Check if it's an existing available tag
+  const existingTag = availableTags.find(tag => tag.name.toLowerCase() === trimmedName)
+  if (existingTag) {
+    addExistingTag(existingTag)
+    return
+  }
+  
+  // Check if already selected
+  const alreadySelected = selectedTags.find(selected => selected.name === trimmedName)
+  if (alreadySelected) return
+  
+  // Regular user OR admin using custom tag button: Create custom tag (only for this event, not saved to Firebase)
+  const customTag = { 
+    id: `custom-${Date.now()}-${trimmedName}`, 
+    name: trimmedName,
+    isCustom: true
+  }
+  
+  selectedTags.push(customTag)
+  displaySelectedTags()
+  displayAvailableTags()
+  
+  document.getElementById('tagInput').value = ''
+}
+
+async function addGlobalTag(tagName) {
+  const trimmedName = tagName.trim().toLowerCase().replace(/\s+/g, '-')
+  if (!trimmedName) return
+  
+  // Check if it's an existing available tag
+  const existingTag = availableTags.find(tag => tag.name.toLowerCase() === trimmedName)
+  if (existingTag) {
+    addExistingTag(existingTag)
+    return
+  }
+  
+  // Check if already selected
+  const alreadySelected = selectedTags.find(selected => selected.name === trimmedName)
+  if (alreadySelected) return
+  
+  // Admin only: Create new tag and save to Firebase
+  try {
+    const newTag = {
+      name: trimmedName,
+      createdBy: currentUser.email,
+      createdAt: new Date().toISOString(),
+      usageCount: 1
+    }
+    
+    const docRef = await addDoc(collection(db, "tags"), newTag)
+    const tagWithId = { id: docRef.id, ...newTag }
+    
+    // Add to available tags list and select it
+    availableTags.push(tagWithId)
+    selectedTags.push(tagWithId)
+    
+    displaySelectedTags()
+    displayAvailableTags()
+    
+    document.getElementById('tagInput').value = ''
+  } catch (error) {
+    console.error("Error adding new tag:", error)
+    alert("Failed to create new tag.")
+  }
+}
+
+function setupTagHandlers() {
+  const tagInput = document.getElementById('tagInput')
+  const addTagBtn = document.getElementById('addTagBtn')
+  const addGlobalTagBtn = document.getElementById('addGlobalTagBtn')
+  
+  addTagBtn.onclick = () => {
+    addCustomTag(tagInput.value)
+  }
+  
+  addGlobalTagBtn.onclick = () => {
+    addGlobalTag(tagInput.value)
+  }
+  
+  tagInput.onkeypress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      addCustomTag(tagInput.value)
+    }
+  }
+}
 
 async function loadEventData() {
   try {
@@ -51,7 +265,7 @@ async function loadEventData() {
     
     if (!docSnapshot.exists()) {
       alert('Event not found')
-      window.location.href = 'my-events.html'
+      window.location.href = 'my-content.html'
       return
     }
     
@@ -60,7 +274,7 @@ async function loadEventData() {
     // Check if this event belongs to the current user
     if (eventData.user !== currentUser.email) {
       alert('You can only edit your own events')
-      window.location.href = 'my-events.html'
+      window.location.href = 'my-content.html'
       return
     }
     
@@ -70,7 +284,7 @@ async function loadEventData() {
   } catch (error) {
     console.error("Error loading event:", error)
     alert('Failed to load event data')
-    window.location.href = 'my-events.html'
+    window.location.href = 'my-content.html'
   }
 }
 
@@ -99,6 +313,13 @@ function populateForm() {
   document.getElementById('image').value = eventData.image || ''
   document.getElementById('participants').value = eventData.participants || ''
   document.getElementById('description').value = eventData.description || ''
+  
+  // Load existing tags
+  if (eventData.tags && eventData.tags.length > 0) {
+    selectedTags = [...eventData.tags]
+    displaySelectedTags()
+    displayAvailableTags()
+  }
 }
 
 function showStatusInfo() {
@@ -143,6 +364,7 @@ document.getElementById('editEventForm').addEventListener('submit', async (e) =>
     image: document.getElementById("image").value,
     participants: parseInt(document.getElementById("participants").value) || 0,
     description: document.getElementById("description").value,
+    tags: selectedTags.map(tag => ({ id: tag.id, name: tag.name, isCustom: tag.isCustom || false })),
     user: currentUser.email,
   }
   
@@ -170,4 +392,6 @@ document.getElementById('editEventForm').addEventListener('submit', async (e) =>
     console.error("Error updating event:", error)
     alert("Failed to update event.")
   }
-}) 
+})
+
+window.removeTag = removeTag 
